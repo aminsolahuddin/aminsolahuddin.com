@@ -1,0 +1,75 @@
+{
+  "meta": {
+    "siteName": "Amin Solahuddin",
+    "tagline": "Code from the videos, and the notes that go with it."
+  },
+  "nav": {
+    "home": "Home",
+    "resources": "Resources",
+    "repos": "Repos",
+    "writing": "Writing",
+    "tools": "Tools",
+    "about": "About",
+    "skipToContent": "Skip to content",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "localeSwitcher": {
+    "label": "Language",
+    "en": "English",
+    "ms": "Bahasa Melayu",
+    "zh-Hans": "简体中文"
+  },
+  "fallbackNotice": {
+    "body": "This page has not been translated yet. You are reading the English version.",
+    "action": "Read in English"
+  },
+  "home": {
+    "headline": "Everything from the video, on one page.",
+    "lead": "Every video I publish has a page here holding the code, the files, and the parts that did not fit in the runtime. No signup, no email wall.",
+    "browseResources": "Browse resources",
+    "latestHeading": "Latest",
+    "emptyState": "Nothing published yet.",
+    "reposHeading": "Repos worth knowing about",
+    "reposLead": "Tools I have actually run, with the catch written down before you click."
+  },
+  "resources": {
+    "indexTitle": "Resources",
+    "indexLead": "One page per video. Code, files, links, notes.",
+    "allCategories": "All",
+    "watchOn": "Watch on {platform}",
+    "openRepo": "Open repository",
+    "filesHeading": "Files",
+    "linksHeading": "Links",
+    "commandsHeading": "Commands",
+    "notesHeading": "Notes",
+    "copyCommand": "Copy",
+    "copied": "Copied",
+    "published": "Published {date}",
+    "updated": "Updated {date}"
+  },
+  "disclosure": {
+    "affiliate": "This page contains affiliate links. I only link tools I have used, and it costs you nothing extra.",
+    "readPolicy": "Read the full policy"
+  },
+  "linkHealth": {
+    "warning": "This link may be broken. Last checked {date}."
+  },
+  "common": {
+    "notFoundTitle": "That page does not exist.",
+    "notFoundBody": "The link may be mistyped, or the page may have moved.",
+    "backHome": "Back to home",
+    "errorTitle": "Something went wrong.",
+    "errorBody": "This one is on me. Try again, and if it keeps happening the contact link below still works.",
+    "retry": "Try again",
+    "loading": "Loading"
+  },
+  "footer": {
+    "sections": "Sections",
+    "legal": "Legal",
+    "disclosure": "Disclosure",
+    "privacy": "Privacy",
+    "rss": "RSS",
+    "copyright": "© {year} Amin Solahuddin"
+  }
+}
