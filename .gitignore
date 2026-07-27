@@ -30,11 +30,24 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
+# ...except the template. BUILD_PLAN.md §14 requires every variable documented
+# in the repo, and a checked-in .env.example is what makes that true.
+!.env.example
 
 # vercel
 .vercel
+
+# Private working documents. These live one level up, in a separate private
+# repository, and must never enter this public one. They are listed here as a
+# second line of defence: the physical separation is the real one, but a stray
+# copy pasted into this directory would otherwise be one `git add .` away from
+# being public forever.
+/CLAUDE.md
+/DESIGN.md
+/BUILD_PLAN.md
+/ANTI_SLOP.md
 
 # typescript
 *.tsbuildinfo

@@ -1,0 +1,19 @@
+# Normalise line endings. Without this the repository content depends on each
+# contributor's core.autocrlf setting, and a Windows checkout can commit CRLF
+# that a Linux build then reads differently. Vercel builds on Linux.
+* text=auto eol=lf
+
+# Binary. Never touch these, and never try to diff them as text.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+
+# Generated. Collapsed in pull request diffs, still versioned.
+pnpm-lock.yaml linguist-generated=true
+app/tokens.css linguist-generated=true
+db/migrations/** linguist-generated=true

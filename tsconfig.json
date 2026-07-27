@@ -1,23 +1,35 @@
 {
   "compilerOptions": {
-    "target": "ES2017",
+    "target": "ES2022",
     "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
+    "allowJs": false,
     "skipLibCheck": true,
+
+    /* CLAUDE.md: TypeScript strict. These go past `strict` on purpose — the ones
+     * below are what actually catch the bugs that reach production. */
     "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "forceConsistentCasingInFileNames": true,
+
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+
+    /* Node's built-in test runner resolves ESM specifiers literally, so the test
+     * files must import "./video-url.ts" with the extension. Safe here because
+     * noEmit is on — nothing is compiled, so no extension is ever rewritten. */
+    "allowImportingTsExtensions": true,
     "jsx": "preserve",
     "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
+    "plugins": [{ "name": "next" }],
     "paths": {
       "@/*": ["./*"]
     }
