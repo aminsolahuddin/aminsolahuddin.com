@@ -4,7 +4,8 @@ import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { LOCALES, DEFAULT_LOCALE, type Locale } from "@/lib/locales";
-import { EMPTY_STATE, savePack, type FormState } from "./actions";
+import { savePack } from "./actions";
+import { EMPTY_STATE, type FormState } from "./form-state";
 
 /**
  * The pack editor. BUILD_PLAN.md §6.

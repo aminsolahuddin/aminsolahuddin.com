@@ -11,23 +11,17 @@ import { slugTaken } from "@/lib/queries/admin-packs";
 import { LOCALES, type Locale } from "@/lib/locales";
 import { packSchema, slugWarnings } from "@/lib/validation/pack";
 import { parseVideoUrl } from "@/lib/video-url";
+import type { FormState } from "./form-state";
 
 /**
  * CLAUDE.md rule 7: validate at the edge. requireAdmin() runs first in every
  * action here — a server action is a public HTTP endpoint, and the page that
  * renders the form having checked the session says nothing about who is posting
  * to it afterwards.
+ *
+ * Nothing but async functions may be exported from this file. FormState and
+ * EMPTY_STATE live in ./form-state for that reason; see the comment there.
  */
-
-export interface FormState {
-  ok: boolean;
-  /** Keyed by field name so the form can put each message beside its input. */
-  errors: Record<string, string>;
-  /** Slug warnings, shown with the override checkbox rather than as errors. §5 */
-  warnings: string[];
-}
-
-export const EMPTY_STATE: FormState = { ok: false, errors: {}, warnings: [] };
 
 function readForm(data: FormData) {
   const str = (key: string) => {
