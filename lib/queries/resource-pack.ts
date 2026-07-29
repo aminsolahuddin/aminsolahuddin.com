@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   category,
@@ -190,6 +190,150 @@ export async function getPackBySlug(
       ];
     }),
   };
+}
+
+export interface PackSummary {
+  slug: string;
+  title: string;
+  summary: string | null;
+  translated: boolean;
+  categoryKey: string | null;
+  publishedAt: Date | null;
+  itemCount: number;
+}
+
+export interface CategoryOption {
+  key: string;
+  name: string;
+  count: number;
+}
+
+/**
+ * The index. Filtering happens in the query rather than in the browser: the
+ * whole list is not large today, but a client-side filter would mean shipping
+ * every pack's text to render three of them, and it would make the filtered view
+ * unlinkable. A category is a URL here, so it can be sent to someone.
+ */
+export async function listPacks(
+  locale: Locale,
+  categoryKey?: string,
+): Promise<PackSummary[]> {
+  const db = getDb();
+  const locales = locale === BASE ? [BASE] : [locale, BASE];
+
+  const rows = await db
+    .select({
+      id: resourcePack.id,
+      slug: resourcePack.slug,
+      publishedAt: resourcePack.publishedAt,
+      categoryKey: category.key,
+    })
+    .from(resourcePack)
+    .leftJoin(category, eq(resourcePack.categoryId, category.id))
+    .where(eq(resourcePack.status, "published"))
+    .orderBy(desc(resourcePack.publishedAt));
+
+  const visible = categoryKey
+    ? rows.filter((r) => r.categoryKey === categoryKey)
+    : rows;
+
+  if (visible.length === 0) return [];
+
+  const ids = visible.map((r) => r.id);
+
+  const text = await db
+    .select()
+    .from(resourcePackI18n)
+    .where(
+      and(
+        inArray(resourcePackI18n.packId, ids),
+        inArray(resourcePackI18n.locale, locales),
+      ),
+    );
+
+  const counts = await db
+    .select({ packId: resourceItem.packId, n: count() })
+    .from(resourceItem)
+    .where(inArray(resourceItem.packId, ids))
+    .groupBy(resourceItem.packId);
+
+  const byPack = new Map<string, typeof text>();
+  for (const row of text) {
+    const list = byPack.get(row.packId);
+    if (list) list.push(row);
+    else byPack.set(row.packId, [row]);
+  }
+
+  const countByPack = new Map(counts.map((c) => [c.packId, Number(c.n)]));
+
+  return visible.flatMap((row) => {
+    const chosen = pick(byPack.get(row.id) ?? [], locale);
+    // Same rule as the detail page: no English row means no title in any
+    // language, which is a data error rather than a missing translation.
+    if (!chosen) return [];
+
+    return [
+      {
+        slug: row.slug,
+        title: chosen.row.title,
+        summary: chosen.row.summary,
+        translated: chosen.translated,
+        categoryKey: row.categoryKey,
+        publishedAt: row.publishedAt,
+        itemCount: countByPack.get(row.id) ?? 0,
+      },
+    ];
+  });
+}
+
+/**
+ * Categories that actually have something published in them, with counts.
+ *
+ * An empty category is not offered as a filter. A filter that leads to "nothing
+ * here" is worse than no filter — the reader cannot tell whether they made a
+ * mistake or the section is simply bare.
+ */
+export async function listCategories(
+  locale: Locale,
+): Promise<CategoryOption[]> {
+  const db = getDb();
+  const locales = locale === BASE ? [BASE] : [locale, BASE];
+
+  const used = await db
+    .select({ id: category.id, key: category.key, sortOrder: category.sortOrder, n: count() })
+    .from(resourcePack)
+    .innerJoin(category, eq(resourcePack.categoryId, category.id))
+    .where(eq(resourcePack.status, "published"))
+    .groupBy(category.id, category.key, category.sortOrder)
+    .orderBy(asc(category.sortOrder));
+
+  if (used.length === 0) return [];
+
+  const names = await db
+    .select()
+    .from(categoryI18n)
+    .where(
+      and(
+        inArray(
+          categoryI18n.categoryId,
+          used.map((c) => c.id),
+        ),
+        inArray(categoryI18n.locale, locales),
+      ),
+    );
+
+  const byCategory = new Map<string, typeof names>();
+  for (const row of names) {
+    const list = byCategory.get(row.categoryId);
+    if (list) list.push(row);
+    else byCategory.set(row.categoryId, [row]);
+  }
+
+  return used.flatMap((c) => {
+    const name = pick(byCategory.get(c.id) ?? [], locale);
+    if (!name) return [];
+    return [{ key: c.key, name: name.row.name, count: Number(c.n) }];
+  });
 }
 
 /** Every published slug, for generateStaticParams and the sitemap. */
