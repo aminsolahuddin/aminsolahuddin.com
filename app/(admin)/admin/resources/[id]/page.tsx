@@ -70,36 +70,18 @@ export default async function EditPackPage(props: {
           status: pack.status,
           hasAffiliate: pack.hasAffiliate,
           translations: pack.translations,
+          items: pack.items.map((item) => ({
+            id: item.id,
+            kind: item.kind,
+            url: item.url ?? "",
+            body: item.body ?? "",
+            lang: item.lang ?? "",
+            isAffiliate: item.isAffiliate,
+            translations: item.translations,
+          })),
         }}
       />
 
-      <section className="border-hairline mt-xxl border-t pt-lg">
-        <h2 className="text-tagline font-display">Items</h2>
-        <p className="text-caption text-ink-muted-80 mt-xs">
-          {pack.items.length === 0
-            ? "No items yet."
-            : `${pack.items.length} item${pack.items.length === 1 ? "" : "s"}.`}{" "}
-          The item editor is the next piece of Phase 1 — until then items come
-          from the seed script.
-        </p>
-
-        {pack.items.length > 0 ? (
-          <ul className="divide-hairline border-hairline mt-md divide-y border-t">
-            {pack.items.map((item) => (
-              <li key={item.id} className="flex items-baseline gap-md py-sm">
-                <span className="text-caption text-ink-muted-80 w-16 shrink-0 font-mono">
-                  {item.kind}
-                </span>
-                <span className="text-body">
-                  {item.translations.en?.label ?? (
-                    <span className="text-ink-muted-80 italic">no English label</span>
-                  )}
-                </span>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </section>
     </div>
   );
 }

@@ -2,13 +2,19 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 
 import { getDb } from "@/db";
-import { resourcePack, resourcePackI18n, slugRedirect } from "@/db/schema";
+import {
+  resourceItem,
+  resourceItemI18n,
+  resourcePack,
+  resourcePackI18n,
+  slugRedirect,
+} from "@/db/schema";
 import { requireAdmin } from "@/lib/require-admin";
 import { slugTaken } from "@/lib/queries/admin-packs";
-import { LOCALES, type Locale } from "@/lib/locales";
+import { DEFAULT_LOCALE, LOCALES, type Locale } from "@/lib/locales";
 import { packSchema, slugWarnings } from "@/lib/validation/pack";
 import { parseVideoUrl } from "@/lib/video-url";
 import type { FormState } from "./form-state";
@@ -61,6 +67,69 @@ function flatten(issues: { path: PropertyKey[]; message: string }[]) {
     errors[key] ??= issue.message;
   }
   return errors;
+}
+
+/**
+ * Items arrive as flat form fields — items.0.kind, items.0.label.ms — because
+ * that is what a plain <form> can express. This regroups them by index.
+ *
+ * An item that already exists carries its id. New ones do not, and are inserted.
+ * Anything whose id was in the database but not in the submission is deleted, so
+ * removing a row in the editor removes it here.
+ */
+function readItems(data: FormData) {
+  const indexes = new Set<number>();
+  for (const key of data.keys()) {
+    const match = /^items\.(\d+)\./.exec(key);
+    if (match?.[1] !== undefined) indexes.add(Number(match[1]));
+  }
+
+  const str = (key: string) => {
+    const value = data.get(key);
+    return typeof value === "string" ? value.trim() : "";
+  };
+
+  return [...indexes]
+    .sort((a, b) => a - b)
+    .flatMap((index, position) => {
+      const at = (field: string) => str(`items.${index}.${field}`);
+
+      const translations = LOCALES.flatMap((locale) => {
+        const label = str(`items.${index}.label.${locale}`);
+        const note = str(`items.${index}.note.${locale}`);
+        // Same rule as the pack: an untouched language is an absent row, never
+        // an empty one, or the translation-gap dashboard reads as complete.
+        if (!label && !note) return [];
+        return [{ locale, label, note }];
+      });
+
+      // A row with no English label describes nothing a reader could be shown.
+      // Dropping it silently beats saving an item that renders as a blank line.
+      if (!translations.some((t) => t.locale === DEFAULT_LOCALE && t.label)) {
+        return [];
+      }
+
+      const kind = at("kind");
+
+      return [
+        {
+          id: at("id") || null,
+          kind: (["code", "file", "link", "command"] as const).includes(
+            kind as "code",
+          )
+            ? (kind as "code" | "file" | "link" | "command")
+            : ("link" as const),
+          url: at("url") || null,
+          body: at("body") || null,
+          lang: at("lang") || null,
+          isAffiliate: data.get(`items.${index}.isAffiliate`) === "on",
+          // Renumbered from the submitted order, so dragging or deleting a row
+          // never leaves gaps or ties in sort_order.
+          sortOrder: (position + 1) * 10,
+          translations,
+        },
+      ];
+    });
 }
 
 /**
@@ -162,8 +231,17 @@ export async function savePack(
      * aloud in a video that is still being watched, so it keeps resolving via a
      * redirect row. onConflictDoNothing because renaming A→B→A must not fail on
      * the row left behind by the first rename.
+     *
+     * Only if it was ever published. A draft slug has never been anywhere: no
+     * video says it, no page has served it, and there is nothing to keep alive.
+     * Writing a redirect for one would leave a permanent row behind every typo
+     * corrected while drafting — and each of those rows quietly reserves a slug
+     * that a later pack can then never use.
+     *
+     * The test is publishedAt rather than the current status, because a pack
+     * that was published and later unpublished still had its slug in the world.
      */
-    if (existing.slug !== input.slug) {
+    if (existing.slug !== input.slug && existing.publishedAt !== null) {
       await db
         .insert(slugRedirect)
         .values({ oldSlug: existing.slug, packId: id })
@@ -206,8 +284,82 @@ export async function savePack(
     );
   }
 
+  await syncItems(id, readItems(data));
+
   revalidatePath("/admin/resources");
   redirect(`/admin/resources/${id}?saved=1`);
+}
+
+/**
+ * Bring the pack's items in line with what was submitted.
+ *
+ * Existing rows are updated in place rather than replaced. Their ids are
+ * referenced by link_health, and delete-then-insert would orphan every health
+ * record on every save — the checks would look clean because their history had
+ * quietly been thrown away, which is the failure §8 is built to prevent.
+ */
+async function syncItems(
+  packId: string,
+  items: ReturnType<typeof readItems>,
+): Promise<void> {
+  const db = getDb();
+
+  const existing = await db
+    .select({ id: resourceItem.id })
+    .from(resourceItem)
+    .where(eq(resourceItem.packId, packId));
+
+  const submitted = new Set(items.map((i) => i.id).filter(Boolean));
+  const removed = existing.filter((row) => !submitted.has(row.id));
+
+  if (removed.length > 0) {
+    await db.delete(resourceItem).where(
+      inArray(
+        resourceItem.id,
+        removed.map((r) => r.id),
+      ),
+    );
+  }
+
+  for (const item of items) {
+    const values = {
+      packId,
+      kind: item.kind,
+      url: item.url,
+      body: item.body,
+      lang: item.lang,
+      isAffiliate: item.isAffiliate,
+      sortOrder: item.sortOrder,
+    };
+
+    let itemId = item.id;
+
+    if (itemId) {
+      await db.update(resourceItem).set(values).where(eq(resourceItem.id, itemId));
+    } else {
+      const [created] = await db
+        .insert(resourceItem)
+        .values(values)
+        .returning({ id: resourceItem.id });
+      if (!created) continue;
+      itemId = created.id;
+    }
+
+    // Translations are replaced wholesale, same as the pack's: a language
+    // cleared in the editor has to disappear rather than linger.
+    await db.delete(resourceItemI18n).where(eq(resourceItemI18n.itemId, itemId));
+
+    if (item.translations.length > 0) {
+      await db.insert(resourceItemI18n).values(
+        item.translations.map((t) => ({
+          itemId,
+          locale: t.locale,
+          label: t.label,
+          note: t.note || null,
+        })),
+      );
+    }
+  }
 }
 
 export async function deletePack(packId: string): Promise<void> {

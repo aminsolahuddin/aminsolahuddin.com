@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 
 import { LOCALES, DEFAULT_LOCALE, type Locale } from "@/lib/locales";
 import { savePack } from "./actions";
+import { ItemEditor, type EditableItem } from "./item-editor";
 import { EMPTY_STATE, type FormState } from "./form-state";
 
 /**
@@ -30,6 +31,7 @@ export interface PackFormValues {
   translations: Partial<
     Record<Locale, { title: string; summary: string; notesMd: string }>
   >;
+  items: EditableItem[];
 }
 
 const FIELD =
@@ -225,6 +227,8 @@ export function PackForm({
           </div>
         ))}
       </fieldset>
+
+      <ItemEditor tab={tab} initial={initial.items} />
 
       <div className="border-hairline mt-xl flex flex-wrap items-center justify-between gap-md border-t pt-lg">
         <div className="flex flex-wrap items-center gap-lg">

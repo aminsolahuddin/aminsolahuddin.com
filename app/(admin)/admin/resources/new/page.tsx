@@ -36,6 +36,7 @@ export default async function NewPackPage() {
           status: "draft",
           hasAffiliate: false,
           translations: {},
+          items: [],
         }}
       />
     </div>
