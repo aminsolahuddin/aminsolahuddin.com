@@ -39,6 +39,7 @@
     "allCategories": "All",
     "watchOn": "Watch on {platform}",
     "openRepo": "Open repository",
+    "codeHeading": "Code",
     "filesHeading": "Files",
     "linksHeading": "Links",
     "commandsHeading": "Commands",
