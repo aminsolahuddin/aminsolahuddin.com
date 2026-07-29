@@ -1,12 +1,16 @@
 import { defineRouting } from "next-intl/routing";
+import { DEFAULT_LOCALE, LOCALES } from "@/lib/locales";
 
 /**
  * BUILD_PLAN.md §4. English is the base; ms and zh-Hans fall back to it rather
  * than to a machine translation or a broken page.
+ *
+ * The list itself lives in lib/locales.ts so that validation schemas can read it
+ * without importing next-intl. See the comment there.
  */
 export const routing = defineRouting({
-  locales: ["en", "ms", "zh-Hans"],
-  defaultLocale: "en",
+  locales: LOCALES,
+  defaultLocale: DEFAULT_LOCALE,
 
   // Every route is prefixed (/en/..., /ms/..., /zh-Hans/...) per CLAUDE.md.
   localePrefix: "always",
