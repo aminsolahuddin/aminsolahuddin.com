@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireAdmin } from "@/lib/require-admin";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +13,7 @@ export default async function AdminDashboard() {
   const admin = await requireAdmin();
 
   const upcoming = [
-    { phase: "Phase 1", item: "Resource packs and items, media pipeline" },
+    { phase: "Phase 1", item: "Media pipeline (R2 upload, WebP/AVIF, alt text)" },
     { phase: "Phase 1", item: "Short-link traffic by slug" },
     { phase: "Phase 2", item: "Repo entries, GitHub sync, link health" },
     { phase: "Phase 5", item: "Translation gaps for ms and zh-Hans" },
@@ -25,6 +26,20 @@ export default async function AdminDashboard() {
       <p className="text-body text-ink-muted-80 mt-xs">
         Signed in as {admin.githubLogin}.
       </p>
+
+      <section className="mt-xl">
+        <h2 className="text-tagline font-display">Content</h2>
+        <ul className="mt-sm divide-y divide-hairline border-y border-hairline">
+          <li className="py-sm">
+            <Link
+              href="/admin/resources"
+              className="text-body text-primary underline-offset-4 hover:underline"
+            >
+              Resource packs
+            </Link>
+          </li>
+        </ul>
+      </section>
 
       <section className="mt-xl">
         <h2 className="text-tagline font-display">Not built yet</h2>
