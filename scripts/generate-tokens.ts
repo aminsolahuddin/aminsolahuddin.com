@@ -51,6 +51,7 @@ interface Design {
   typography: Record<string, TypeStyle>;
   rounded: Record<string, Scalar>;
   spacing: Record<string, Scalar>;
+  breakpoints?: Record<string, Scalar>;
   components?: Record<string, ComponentSpec>;
 }
 
@@ -187,6 +188,34 @@ function build(design: Design): string {
     if (rem) out(`  --spacing-${name}: ${rem};`);
   }
   out();
+
+  // ---- breakpoints ----------------------------------------------------------
+  // Tailwind ships its own (640/768/1024/1280/1536) and they are not DESIGN.md's.
+  // Left alone, every `md:` in the codebase would silently mean 768px when the
+  // spec says the nav collapses at 833px — a rule 1 violation with no visible
+  // symptom until someone measures it. Emitting these overrides the defaults.
+  const breakpoints = design.breakpoints ?? {};
+  if (Object.keys(breakpoints).length > 0) {
+    out("  /* Breakpoints, named for the device rather than sm/md/lg. 833px is");
+    out("   * \"where the nav collapses\", not \"medium\".");
+    out("   *");
+    out("   * The `initial` first is load-bearing. Declaring --breakpoint-* in");
+    out("   * Tailwind v4 ADDS to the defaults rather than replacing them, so");
+    out("   * without it `md:` would survive meaning 768px — a value DESIGN.md");
+    out("   * does not contain — sitting next to `tablet:` meaning 833px. Clearing");
+    out("   * the namespace makes the spec's names the only ones that exist. */");
+    out("  --breakpoint-*: initial;");
+    // Tailwind v4 keys off --breakpoint-* and sorts by value, so the emitted
+    // order does not matter — but ascending order is how a person reads them.
+    const ordered = Object.entries(breakpoints).sort(
+      ([, a], [, b]) => (px(a) ?? 0) - (px(b) ?? 0),
+    );
+    for (const [name, value] of ordered) {
+      const rem = toRem(value);
+      if (rem) out(`  --breakpoint-${name}: ${rem};`);
+    }
+    out();
+  }
 
   // ---- radius ---------------------------------------------------------------
   out("  /* Radius. Six distinct values with assigned jobs — uniform radius across");

@@ -62,7 +62,9 @@ export async function SiteHeader({ locale }: { locale: string }) {
           <Link href="/" className="text-tagline font-display">
             {meta("siteName")}
           </Link>
-          <p className="text-caption text-ink-muted-80 hidden sm:block">
+          {/* Hidden below the phone breakpoint: the tagline is the first thing
+              that should go when the bar gets tight, and the site name is not. */}
+          <p className="text-caption text-ink-muted-80 hidden phone:block">
             {meta("tagline")}
           </p>
         </div>

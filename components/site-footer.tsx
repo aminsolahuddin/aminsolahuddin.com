@@ -29,7 +29,10 @@ export async function SiteFooter() {
 
   return (
     <footer className="bg-canvas-parchment text-ink-muted-80 px-lg pt-xxl pb-xl">
-      <div className="mx-auto grid max-w-6xl gap-xl sm:grid-cols-3">
+      {/* `phone:`, not `sm:`. Tailwind's default breakpoints are cleared in
+          tokens.css because none of them is a DESIGN.md value — the names here
+          come from its Responsive Behavior table. */}
+      <div className="mx-auto grid max-w-6xl gap-xl phone:grid-cols-3">
         <div>
           <h2 className="text-caption-strong text-ink">{t("sections")}</h2>
           <ul className="text-dense-link">

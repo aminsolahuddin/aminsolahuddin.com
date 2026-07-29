@@ -121,6 +121,23 @@
   --spacing-xxl: 3rem;
   --spacing-section: 5rem;
 
+  /* Breakpoints, named for the device rather than sm/md/lg. 833px is
+   * "where the nav collapses", not "medium".
+   *
+   * The `initial` first is load-bearing. Declaring --breakpoint-* in
+   * Tailwind v4 ADDS to the defaults rather than replacing them, so
+   * without it `md:` would survive meaning 768px — a value DESIGN.md
+   * does not contain — sitting next to `tablet:` meaning 833px. Clearing
+   * the namespace makes the spec's names the only ones that exist. */
+  --breakpoint-*: initial;
+  --breakpoint-small-phone: 26.25rem;
+  --breakpoint-phone: 40.0625rem;
+  --breakpoint-large-phone: 46rem;
+  --breakpoint-tablet: 52.125rem;
+  --breakpoint-small-desktop: 64rem;
+  --breakpoint-desktop: 66.8125rem;
+  --breakpoint-wide: 90.0625rem;
+
   /* Radius. Six distinct values with assigned jobs — uniform radius across
    * every element is a slop tell. Never invent a seventh. */
   --radius-none: 0px;
