@@ -16,6 +16,23 @@ export interface FormState {
   errors: Record<string, string>;
   /** Slug warnings, shown with the override checkbox rather than as errors. §5 */
   warnings: string[];
+  /**
+   * What was submitted, echoed back so a rejected save redisplays it.
+   *
+   * Without this the inputs fall back to their defaults on every failure, and
+   * the §5 override becomes self-defeating: the warnings tell you the slug is
+   * risky, and accepting them means retyping the slug you just lost. A warning
+   * that costs the work it is warning about gets clicked past.
+   *
+   * Keyed by form field name — "slug", "title.ms" — so the form can read it back
+   * without a second shape to keep in sync.
+   */
+  values: Record<string, string> | null;
 }
 
-export const EMPTY_STATE: FormState = { ok: false, errors: {}, warnings: [] };
+export const EMPTY_STATE: FormState = {
+  ok: false,
+  errors: {},
+  warnings: [],
+  values: null,
+};

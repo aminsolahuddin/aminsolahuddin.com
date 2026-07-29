@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { LOCALES, DEFAULT_LOCALE, type Locale } from "@/lib/locales";
@@ -53,8 +53,31 @@ export function PackForm({
   );
   const [tab, setTab] = useState<Locale>(DEFAULT_LOCALE);
 
+  /**
+   * What was submitted wins over what was loaded. A rejected save has to come
+   * back showing the typing that caused it — otherwise accepting a slug warning
+   * means retyping the slug the warning was about, and §5's override turns into
+   * a punishment for reading it.
+   */
+  const value = (name: string, loaded: string) =>
+    state.values?.[name] ?? loaded;
+
+  /**
+   * Remount the form on every rejected save.
+   *
+   * React 19 resets uncontrolled fields once a form action settles, and
+   * `defaultValue` is only read at mount — so echoing the values back is not
+   * enough on its own, and changing them silently does nothing. Bumping a key
+   * is what makes the new defaults take. Focus is lost, which is the right place
+   * for it to go anyway when a form has just come back with errors on it.
+   */
+  const [generation, setGeneration] = useState(0);
+  useEffect(() => {
+    if (state.values) setGeneration((n) => n + 1);
+  }, [state]);
+
   return (
-    <form action={formAction} className="mt-xl">
+    <form key={generation} action={formAction} className="mt-xl">
       {state.errors["form"] ? (
         <p role="alert" className="text-body text-primary mb-lg">
           {state.errors["form"]}
@@ -69,7 +92,7 @@ export function PackForm({
         >
           <input
             name="slug"
-            defaultValue={initial.slug}
+            defaultValue={value("slug", initial.slug)}
             required
             className={`${FIELD} font-mono`}
             placeholder="docker-fix"
@@ -79,7 +102,7 @@ export function PackForm({
         <Field label="Category">
           <select
             name="categoryId"
-            defaultValue={initial.categoryId ?? ""}
+            defaultValue={value("categoryId", initial.categoryId ?? "")}
             className={FIELD}
           >
             <option value="">None</option>
@@ -117,7 +140,7 @@ export function PackForm({
         >
           <input
             name="videoUrl"
-            defaultValue={initial.videoUrl ?? ""}
+            defaultValue={value("videoUrl", initial.videoUrl ?? "")}
             className={FIELD}
             placeholder="https://www.youtube.com/watch?v=..."
           />
@@ -126,7 +149,7 @@ export function PackForm({
         <Field label="Repository URL" error={state.errors["repoUrl"]}>
           <input
             name="repoUrl"
-            defaultValue={initial.repoUrl ?? ""}
+            defaultValue={value("repoUrl", initial.repoUrl ?? "")}
             className={FIELD}
             placeholder="https://github.com/owner/name"
           />
@@ -177,7 +200,7 @@ export function PackForm({
             >
               <input
                 name={`title.${locale}`}
-                defaultValue={initial.translations[locale]?.title ?? ""}
+                defaultValue={value(`title.${locale}`, initial.translations[locale]?.title ?? "")}
                 className={FIELD}
               />
             </Field>
@@ -185,7 +208,7 @@ export function PackForm({
             <Field label="Summary">
               <textarea
                 name={`summary.${locale}`}
-                defaultValue={initial.translations[locale]?.summary ?? ""}
+                defaultValue={value(`summary.${locale}`, initial.translations[locale]?.summary ?? "")}
                 rows={2}
                 className={FIELD}
               />
@@ -194,7 +217,7 @@ export function PackForm({
             <Field label="Notes">
               <textarea
                 name={`notes.${locale}`}
-                defaultValue={initial.translations[locale]?.notesMd ?? ""}
+                defaultValue={value(`notes.${locale}`, initial.translations[locale]?.notesMd ?? "")}
                 rows={6}
                 className={`${FIELD} font-mono`}
               />
@@ -218,7 +241,7 @@ export function PackForm({
             Status
             <select
               name="status"
-              defaultValue={initial.status}
+              defaultValue={value("status", initial.status)}
               className="border-hairline bg-canvas rounded-xs border px-xs py-xxs"
             >
               <option value="draft">Draft</option>

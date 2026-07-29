@@ -63,6 +63,21 @@ function flatten(issues: { path: PropertyKey[]; message: string }[]) {
   return errors;
 }
 
+/**
+ * Every text field, by its form name, so a rejected save can redisplay exactly
+ * what was typed. Checkboxes are excluded — they are re-derived from the state
+ * the form already renders, and a stale one would silently re-tick an override.
+ */
+function echo(data: FormData): Record<string, string> {
+  const values: Record<string, string> = {};
+  for (const [key, value] of data.entries()) {
+    if (typeof value === "string" && key !== "slugOverride" && key !== "hasAffiliate") {
+      values[key] = value;
+    }
+  }
+  return values;
+}
+
 export async function savePack(
   packId: string | null,
   _prev: FormState,
@@ -80,6 +95,7 @@ export async function savePack(
       // Returned alongside the error so the override checkbox appears with the
       // reasons next to it, rather than asking for a confirmation of nothing.
       warnings: slugWarnings(raw.slug).map((w) => w.message),
+      values: echo(data),
     };
   }
 
@@ -90,6 +106,7 @@ export async function savePack(
       ok: false,
       errors: { slug: "Another pack already uses this slug." },
       warnings: [],
+      values: echo(data),
     };
   }
 
@@ -120,7 +137,14 @@ export async function savePack(
       .where(eq(resourcePack.id, id))
       .limit(1);
 
-    if (!existing) return { ok: false, errors: { form: "That pack is gone." }, warnings: [] };
+    if (!existing) {
+      return {
+        ok: false,
+        errors: { form: "That pack is gone." },
+        warnings: [],
+        values: echo(data),
+      };
+    }
 
     await db
       .update(resourcePack)
@@ -154,7 +178,14 @@ export async function savePack(
       })
       .returning({ id: resourcePack.id });
 
-    if (!created) return { ok: false, errors: { form: "Could not create the pack." }, warnings: [] };
+    if (!created) {
+      return {
+        ok: false,
+        errors: { form: "Could not create the pack." },
+        warnings: [],
+        values: echo(data),
+      };
+    }
     id = created.id;
   }
 
