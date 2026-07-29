@@ -14,7 +14,6 @@ export default async function AdminDashboard() {
 
   const upcoming = [
     { phase: "Phase 1", item: "Media pipeline (R2 upload, WebP/AVIF, alt text)" },
-    { phase: "Phase 1", item: "Short-link traffic by slug" },
     { phase: "Phase 2", item: "Repo entries, GitHub sync, link health" },
     { phase: "Phase 5", item: "Translation gaps for ms and zh-Hans" },
     { phase: "Phase 5", item: "Entries not reviewed in 6 months" },
@@ -36,6 +35,14 @@ export default async function AdminDashboard() {
               className="text-body text-primary underline-offset-4 hover:underline"
             >
               Resource packs
+            </Link>
+          </li>
+          <li className="py-sm">
+            <Link
+              href="/admin/traffic"
+              className="text-body text-primary underline-offset-4 hover:underline"
+            >
+              Short-link traffic
             </Link>
           </li>
         </ul>
