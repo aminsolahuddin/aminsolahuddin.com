@@ -52,6 +52,38 @@
     "published": "Published {date}",
     "updated": "Updated {date}"
   },
+  "repos": {
+    "indexTitle": "Repos",
+    "indexLead": "Tools I have actually run, with the catch written down before you click.",
+    "searchLabel": "Search",
+    "searchPlaceholder": "Name or what it does",
+    "allCategories": "All",
+    "empty": "Nothing published here yet.",
+    "noMatch": "Nothing matches that.",
+    "clearSearch": "Clear",
+    "forWhom": "Who it is for",
+    "notForYouIf": "Not for you if",
+    "replaces": "Replaces",
+    "theCatch": "The catch",
+    "openOnGitHub": "Open on GitHub",
+    "stars": "{count, plural, one {# star} other {# stars}}",
+    "notSynced": "Not synced yet",
+    "lastCommit": "Last commit {date}",
+    "reviewed": "Reviewed {date}",
+    "license": "Licence {spdx}",
+    "status": {
+      "maintained": "Maintained",
+      "slowing": "Slowing down",
+      "archived": "Archived",
+      "superseded": "Superseded"
+    },
+    "statusNote": {
+      "slowing": "No commit in over a year. Still works, but nobody is fixing it quickly.",
+      "archived": "The authors have stopped. It is kept here so the recommendation does not quietly disappear.",
+      "superseded": "Something else does this better now."
+    },
+    "replacedBy": "Use this instead"
+  },
   "disclosure": {
     "affiliate": "This page contains affiliate links. I only link tools I have used, and it costs you nothing extra.",
     "readPolicy": "Read the full policy"
