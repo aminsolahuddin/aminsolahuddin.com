@@ -17,7 +17,7 @@ import { slugTaken } from "@/lib/queries/admin-packs";
 import { DEFAULT_LOCALE, LOCALES, type Locale } from "@/lib/locales";
 import { packSchema, slugWarnings } from "@/lib/validation/pack";
 import { parseVideoUrl } from "@/lib/video-url";
-import type { FormState } from "./form-state";
+import { flattenIssues, type FormState } from "@/lib/form-state";
 
 /**
  * CLAUDE.md rule 7: validate at the edge. requireAdmin() runs first in every
@@ -26,7 +26,7 @@ import type { FormState } from "./form-state";
  * to it afterwards.
  *
  * Nothing but async functions may be exported from this file. FormState and
- * EMPTY_STATE live in ./form-state for that reason; see the comment there.
+ * EMPTY_STATE live in @/lib/form-state for that reason; see the comment there.
  */
 
 function readForm(data: FormData) {
@@ -58,15 +58,6 @@ function readForm(data: FormData) {
     hasAffiliate: data.get("hasAffiliate") === "on",
     translations,
   };
-}
-
-function flatten(issues: { path: PropertyKey[]; message: string }[]) {
-  const errors: Record<string, string> = {};
-  for (const issue of issues) {
-    const key = issue.path.map(String).join(".") || "form";
-    errors[key] ??= issue.message;
-  }
-  return errors;
 }
 
 /**
@@ -160,7 +151,7 @@ export async function savePack(
   if (!parsed.success) {
     return {
       ok: false,
-      errors: flatten(parsed.error.issues),
+      errors: flattenIssues(parsed.error.issues),
       // Returned alongside the error so the override checkbox appears with the
       // reasons next to it, rather than asking for a confirmation of nothing.
       warnings: slugWarnings(raw.slug).map((w) => w.message),

@@ -38,6 +38,15 @@ export const repoStatus = pgEnum("repo_status", [
   "superseded",
 ]);
 export const itemKind = pgEnum("item_kind", ["code", "file", "link", "command"]);
+/**
+ * §7: what the sync job raises for a human. Deliberately not every field it
+ * writes — see the comment on repoSyncChange for why stars are not in this list.
+ */
+export const repoChangeKind = pgEnum("repo_change_kind", [
+  "status",
+  "license",
+  "missing",
+]);
 export const targetType = pgEnum("target_type", [
   "resource_pack",
   "resource_item",
@@ -353,6 +362,61 @@ export const linkHealth = pgTable(
   (table) => [
     index("link_health_target_idx").on(table.targetType, table.targetId),
     index("link_health_failures_idx").on(table.consecutiveFailures),
+    /**
+     * The row's real identity, and what the weekly job upserts against.
+     *
+     * Not (target_type, target_id): one repo entry carries both its GitHub URL
+     * and the URL of whatever replaced it, and those fail independently. Keying
+     * on the target alone would let each run overwrite the other's result, and
+     * the failure count — the whole signal in §8 — would reset to zero every
+     * time the job happened to check the healthy one second.
+     */
+    uniqueIndex("link_health_target_url_idx").on(
+      table.targetType,
+      table.targetId,
+      table.url,
+    ),
+  ],
+);
+
+/**
+ * §7: "Flag changes in the admin dashboard rather than silently rewriting the
+ * page. If a repo he recommended is now archived, he should decide what to say
+ * about it."
+ *
+ * The sync writes facts — stars, licence, last commit, derived status — because
+ * a reader seeing a stale "Maintained" badge is the misleading outcome §12 names.
+ * What it never touches is repo_entry_i18n: the prose is the recommendation, and
+ * no job gets to edit that. This table is the handoff between the two.
+ *
+ * Only status, licence and disappearance land here. Stars move every week and
+ * flagging them would bury the two rows that actually invalidate a
+ * recommendation — a project stopping, or MIT quietly becoming BUSL — under
+ * noise nobody reads. A dashboard that is always full is a dashboard that is
+ * never checked.
+ */
+export const repoSyncChange = pgTable(
+  "repo_sync_change",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    entryId: uuid("entry_id")
+      .notNull()
+      .references(() => repoEntry.id, { onDelete: "cascade" }),
+    kind: repoChangeKind("kind").notNull(),
+    /** Both nullable: a repo with no licence, or one that has vanished. */
+    oldValue: text("old_value"),
+    newValue: text("new_value"),
+    detectedAt: timestamp("detected_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    /**
+     * Set when Amin has read it and decided. Kept rather than deleted so the
+     * record of "this was archived in March and I knew" survives.
+     */
+    acknowledgedAt: timestamp("acknowledged_at", { withTimezone: true }),
+  },
+  (table) => [
+    index("repo_sync_change_open_idx").on(table.acknowledgedAt, table.detectedAt),
   ],
 );
 
@@ -446,6 +510,14 @@ export const repoEntryRelations = relations(repoEntry, ({ one, many }) => ({
     references: [category.id],
   }),
   translations: many(repoEntryI18n),
+  syncChanges: many(repoSyncChange),
+}));
+
+export const repoSyncChangeRelations = relations(repoSyncChange, ({ one }) => ({
+  entry: one(repoEntry, {
+    fields: [repoSyncChange.entryId],
+    references: [repoEntry.id],
+  }),
 }));
 
 export const repoEntryI18nRelations = relations(repoEntryI18n, ({ one }) => ({

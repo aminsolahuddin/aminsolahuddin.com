@@ -10,6 +10,12 @@ import {
   repoEntryI18n,
 } from "@/db/schema";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/locales";
+/**
+ * §8's threshold, imported rather than restated. The job that counts the failures
+ * and the page that renders the marker have to agree, and two copies of a 3 in
+ * two files is how they stop agreeing.
+ */
+import { SUSPECT_AFTER } from "@/lib/jobs/link-health";
 
 /**
  * BUILD_PLAN.md §3: `one_liner`, `for_whom`, `not_for_you_if`, `replaces`,
@@ -62,8 +68,6 @@ function pick<T extends { locale: string }>(
   return null;
 }
 
-/** §8: three consecutive failures marks a link. Fewer is noise, not a signal. */
-const SUSPECT_AFTER = 3;
 
 export async function listRepos(
   locale: Locale,
@@ -223,6 +227,14 @@ export async function getRepo(
           inArray(repoEntryI18n.locale, locales),
         ),
       ),
+    /**
+     * Every health row for this entry, not the first one.
+     *
+     * An entry carries its GitHub URL and, when superseded, the URL of whatever
+     * replaced it — two rows that fail independently. A limit(1) with no ordering
+     * picks whichever the planner happens to return, so the marker would appear
+     * or not depending on nothing.
+     */
     db
       .select({ failures: linkHealth.consecutiveFailures })
       .from(linkHealth)
@@ -231,12 +243,13 @@ export async function getRepo(
           eq(linkHealth.targetType, "repo_entry"),
           eq(linkHealth.targetId, row.id),
         ),
-      )
-      .limit(1),
+      ),
   ]);
 
   const chosen = pick(text, locale);
   if (!chosen) return null;
+
+  const worstLink = health.reduce((worst, h) => Math.max(worst, h.failures), 0);
 
   return {
     owner: row.owner,
@@ -257,7 +270,7 @@ export async function getRepo(
     replaces: chosen.row.replaces,
     theCatch: chosen.row.theCatch,
     translated: chosen.translated,
-    linkSuspect: (health[0]?.failures ?? 0) >= SUSPECT_AFTER,
+    linkSuspect: worstLink >= SUSPECT_AFTER,
   };
 }
 

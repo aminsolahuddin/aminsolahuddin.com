@@ -8,6 +8,13 @@
       "when": 1785143179565,
       "tag": "0000_abandoned_mentallo",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1785340149863,
+      "tag": "0001_amazing_sabra",
+      "breakpoints": true
     }
   ]
 }

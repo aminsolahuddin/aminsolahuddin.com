@@ -6,7 +6,7 @@ import { useFormStatus } from "react-dom";
 import { LOCALES, DEFAULT_LOCALE, type Locale } from "@/lib/locales";
 import { savePack } from "./actions";
 import { ItemEditor, type EditableItem } from "./item-editor";
-import { EMPTY_STATE, type FormState } from "./form-state";
+import { EMPTY_STATE, type FormState } from "@/lib/form-state";
 
 /**
  * The pack editor. BUILD_PLAN.md §6.

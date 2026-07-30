@@ -14,9 +14,9 @@ export default async function AdminDashboard() {
 
   const upcoming = [
     { phase: "Phase 1", item: "Media pipeline (R2 upload, WebP/AVIF, alt text)" },
-    { phase: "Phase 2", item: "Repo entries, GitHub sync, link health" },
+    { phase: "Phase 3", item: "Posts, RSS, newsletter" },
+    { phase: "Phase 4", item: "Tools and the disclosure page" },
     { phase: "Phase 5", item: "Translation gaps for ms and zh-Hans" },
-    { phase: "Phase 5", item: "Entries not reviewed in 6 months" },
   ] as const;
 
   return (
@@ -39,11 +39,37 @@ export default async function AdminDashboard() {
           </li>
           <li className="py-sm">
             <Link
+              href="/admin/repos"
+              className="text-body text-primary underline-offset-4 hover:underline"
+            >
+              Repo library
+            </Link>
+          </li>
+          <li className="py-sm">
+            <Link
               href="/admin/traffic"
               className="text-body text-primary underline-offset-4 hover:underline"
             >
               Short-link traffic
             </Link>
+          </li>
+        </ul>
+      </section>
+
+      <section className="mt-xl">
+        <h2 className="text-tagline font-display">Upkeep</h2>
+        <ul className="mt-sm divide-y divide-hairline border-y border-hairline">
+          <li className="py-sm">
+            <Link
+              href="/admin/health"
+              className="text-body text-primary underline-offset-4 hover:underline"
+            >
+              Rot
+            </Link>
+            <p className="text-caption text-ink-muted-80 mt-xxs">
+              Repos that changed on GitHub, links that stopped answering, entries
+              nobody has checked in six months.
+            </p>
           </li>
         </ul>
       </section>

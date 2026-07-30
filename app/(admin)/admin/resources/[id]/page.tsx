@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { requireAdmin } from "@/lib/require-admin";
 import { getAdminPack, listAdminCategories } from "@/lib/queries/admin-packs";
 import { PackForm } from "../pack-form";
+import { DeletePackButton } from "../delete-button";
 
 export const dynamic = "force-dynamic";
 
@@ -82,6 +83,19 @@ export default async function EditPackPage(props: {
         }}
       />
 
+      {/* Rule 3 is why only drafts reach the button. A published slug may
+          already be in a video, and deleting it breaks that URL permanently —
+          unpublishing keeps the row and the short link resolving. */}
+      {pack.status === "draft" ? (
+        <div className="border-hairline mt-xxl border-t pt-lg">
+          <DeletePackButton packId={pack.id} slug={pack.slug} />
+        </div>
+      ) : (
+        <p className="text-caption text-ink-muted-80 border-hairline mt-xxl border-t pt-lg">
+          Published packs cannot be deleted. Set it to draft first — the slug may
+          already have been said out loud.
+        </p>
+      )}
     </div>
   );
 }
