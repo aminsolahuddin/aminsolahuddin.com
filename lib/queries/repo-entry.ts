@@ -69,9 +69,17 @@ function pick<T extends { locale: string }>(
 }
 
 
+/**
+ * Every published entry, optionally narrowed to a category.
+ *
+ * There is no `search` option any more. Search happens in the browser over rows
+ * that are already on the page — see components/live-filter.tsx — and leaving a
+ * database-side search here that nothing calls would be a function nobody could
+ * trust the day it was finally needed.
+ */
 export async function listRepos(
   locale: Locale,
-  options: { categoryKey?: string; search?: string } = {},
+  options: { categoryKey?: string } = {},
 ): Promise<RepoSummary[]> {
   const db = getDb();
   const locales = locale === DEFAULT_LOCALE ? [DEFAULT_LOCALE] : [locale, DEFAULT_LOCALE];
@@ -139,26 +147,12 @@ export async function listRepos(
     health.filter((h) => h.failures >= SUSPECT_AFTER).map((h) => h.targetId),
   );
 
-  const needle = options.search?.trim().toLowerCase();
-
   return rows.flatMap((row) => {
     const chosen = pick(byEntry.get(row.id) ?? [], locale);
     // No English row means no one-liner in any language a reader can be given.
     if (!chosen) return [];
 
     if (options.categoryKey && row.categoryKey !== options.categoryKey) return [];
-
-    /**
-     * Search covers owner, name and the one-liner. Deliberately not the catch or
-     * the caveats: those contain words like "deprecated" and "slow", and a
-     * search for "slow" surfacing every repo that warns about slowness would
-     * bury the one that is actually about it.
-     */
-    if (needle) {
-      const haystack =
-        `${row.owner}/${row.name} ${chosen.row.oneLiner}`.toLowerCase();
-      if (!haystack.includes(needle)) return [];
-    }
 
     return [
       {

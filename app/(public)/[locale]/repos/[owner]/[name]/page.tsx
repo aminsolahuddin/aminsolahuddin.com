@@ -49,7 +49,6 @@ export default async function RepoPage(props: Props) {
   const tf = await getTranslations("fallbackNotice");
   const th = await getTranslations("linkHealth");
 
-  const number = new Intl.NumberFormat(locale);
   const dateFormat = new Intl.DateTimeFormat(locale, { dateStyle: "long" });
 
   /**
@@ -124,9 +123,15 @@ export default async function RepoPage(props: Props) {
           </a>
 
           <span className="text-caption text-ink-muted-80 tabular-nums">
+            {/* The raw number, not a formatted string. `#` inside an ICU plural
+                is the count rendered through the locale's number format, so
+                pre-formatting it hands ICU "8,682" where it expects 8682 — the
+                plural arm still resolves but `#` prints NaN. Passing the number
+                also satisfies CLAUDE.md's Intl.NumberFormat rule, because that
+                is what ICU uses to render it. */}
             {repo.stars === null
               ? t("notSynced")
-              : t("stars", { count: number.format(repo.stars) })}
+              : t("stars", { count: repo.stars })}
           </span>
 
           {repo.licenseSpdx ? (
