@@ -22,6 +22,7 @@
   },
   "fallbackNotice": {
     "body": "This page has not been translated yet. You are reading the English version.",
+    "listBody": "Some entries on this page have not been translated yet. Those are shown in English.",
     "action": "Read in English"
   },
   "home": {
