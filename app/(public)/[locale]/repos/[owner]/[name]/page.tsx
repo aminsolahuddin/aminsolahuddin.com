@@ -5,8 +5,15 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { routing } from "@/i18n/routing";
 import { getRepo } from "@/lib/queries/repo-entry";
+import { getSiteUrl } from "@/lib/env";
 import { FallbackNotice } from "@/components/fallback-notice";
 import { RepoStatusBadge } from "@/components/repo-status";
+import { localeAlternates } from "@/lib/alternates";
+import {
+  JsonLd,
+  breadcrumbSchema,
+  softwareSchema,
+} from "@/components/json-ld";
 
 export const dynamic = "force-dynamic";
 
@@ -27,13 +34,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     // The repo name is the title, untranslated in every locale.
     title: `${repo.owner}/${repo.name}`,
     description: repo.oneLiner,
-    alternates: {
-      canonical: `/${locale}${path}`,
-      languages: {
-        ...Object.fromEntries(routing.locales.map((l) => [l, `/${l}${path}`])),
-        "x-default": `/${routing.defaultLocale}${path}`,
-      },
-    },
+    alternates: localeAlternates(locale, path),
   };
 }
 
@@ -179,6 +180,28 @@ export default async function RepoPage(props: Props) {
           </p>
         ) : null}
       </article>
+
+      {/* §9: SoftwareApplication on repo entries, BreadcrumbList on nested pages. */}
+      <JsonLd
+        schema={softwareSchema({
+          owner: repo.owner,
+          name: repo.name,
+          description: repo.oneLiner,
+          url: `${getSiteUrl()}/${locale}/repos/${owner}/${name}`,
+          githubUrl: repo.githubUrl,
+          licenseSpdx: repo.licenseSpdx,
+          locale,
+        })}
+      />
+      <JsonLd
+        schema={breadcrumbSchema([
+          { name: t("indexTitle"), url: `${getSiteUrl()}/${locale}/repos` },
+          {
+            name: `${repo.owner}/${repo.name}`,
+            url: `${getSiteUrl()}/${locale}/repos/${owner}/${name}`,
+          },
+        ])}
+      />
     </>
   );
 }

@@ -336,7 +336,7 @@ export async function listCategories(
   });
 }
 
-/** Every published slug, for generateStaticParams and the sitemap. */
+/** Every published slug, for generateStaticParams. */
 export async function getPublishedSlugs(): Promise<string[]> {
   const rows = await getDb()
     .select({ slug: resourcePack.slug })
@@ -344,4 +344,21 @@ export async function getPublishedSlugs(): Promise<string[]> {
     .where(eq(resourcePack.status, "published"));
 
   return rows.map((r) => r.slug);
+}
+
+/**
+ * The same rows with their last edit, for the sitemap.
+ *
+ * Separate from getPublishedSlugs rather than replacing it. §9 wants `lastmod`
+ * from `updated_at`, and generateStaticParams wants bare slugs — widening the
+ * existing function would make every caller carry a field it throws away.
+ */
+export async function getPublishedPackSlugs(): Promise<
+  { slug: string; updatedAt: Date }[]
+> {
+  return getDb()
+    .select({ slug: resourcePack.slug, updatedAt: resourcePack.updatedAt })
+    .from(resourcePack)
+    .where(eq(resourcePack.status, "published"))
+    .orderBy(desc(resourcePack.publishedAt));
 }

@@ -180,6 +180,59 @@ async function lookup(
     .map((row) => [row.id, { label: row.label ?? "Untitled", href: row.href }]);
 }
 
+/**
+ * When the sync job last actually succeeded, and whether that is long enough ago
+ * to be worth saying out loud.
+ *
+ * This exists because of the way §7's job fails. If GITHUB_SYNC_TOKEN expires —
+ * and a fine-grained PAT always expires — every request comes back 401, the job
+ * reports every entry as failed, and that report goes into a Vercel cron log
+ * nobody reads on a Sunday. Meanwhile every page keeps rendering last month's
+ * star counts and last month's status with complete confidence.
+ *
+ * A silent failure that leaves stale data looking fresh is exactly the rot §8 is
+ * built to catch, so it is reported in the same place, in the same words.
+ */
+export interface SyncFreshness {
+  lastSyncedAt: Date | null;
+  /** Published entries the job has never managed to reach at all. */
+  neverSynced: number;
+  /** True once the newest successful sync is older than two runs of a weekly job. */
+  stale: boolean;
+  totalPublished: number;
+}
+
+/** Two weekly runs. One missed Sunday is a blip; two is something broken. */
+const SYNC_STALE_AFTER_DAYS = 15;
+
+export async function getSyncFreshness(now = new Date()): Promise<SyncFreshness> {
+  const cutoff = new Date(now.getTime() - SYNC_STALE_AFTER_DAYS * 86_400_000);
+
+  const [row] = await getDb()
+    .select({
+      last: sql<Date | null>`max(${repoEntry.syncedAt})`,
+      never: sql<number>`count(*) filter (where ${repoEntry.syncedAt} is null)::int`,
+      total: sql<number>`count(*)::int`,
+    })
+    .from(repoEntry)
+    .where(eq(repoEntry.contentStatus, "published"));
+
+  const lastSyncedAt = row?.last ? new Date(row.last) : null;
+  const total = Number(row?.total ?? 0);
+
+  return {
+    lastSyncedAt,
+    neverSynced: Number(row?.never ?? 0),
+    /**
+     * An empty library is not stale, it is empty. Reporting "never synced" on a
+     * site with no entries would put a permanent warning on the dashboard of
+     * every fresh install, which teaches you to ignore the warning.
+     */
+    stale: total > 0 && (lastSyncedAt === null || lastSyncedAt < cutoff),
+    totalPublished: total,
+  };
+}
+
 /** Entries no human has looked at in six months. §5 of the durability phase. */
 export async function countStaleReviews(now = new Date()): Promise<number> {
   const cutoff = new Date(now.getTime() - 182 * 86_400_000);

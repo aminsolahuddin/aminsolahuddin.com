@@ -6,6 +6,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { listCategories, listPacks } from "@/lib/queries/resource-pack";
+import { localeAlternates } from "@/lib/alternates";
 
 /**
  * BUILD_PLAN.md §2 and §12: the index of packs, filterable by category.
@@ -34,15 +35,7 @@ export async function generateMetadata(props: {
   return {
     title: t("indexTitle"),
     description: t("indexLead"),
-    alternates: {
-      canonical: `/${locale}/resources`,
-      languages: {
-        ...Object.fromEntries(
-          routing.locales.map((l) => [l, `/${l}/resources`]),
-        ),
-        "x-default": `/${routing.defaultLocale}/resources`,
-      },
-    },
+    alternates: localeAlternates(locale, "/resources"),
   };
 }
 

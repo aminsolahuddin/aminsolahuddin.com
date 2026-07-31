@@ -12,7 +12,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "node --test \"lib/**/*.test.ts\"",
+    "test": "node --test --conditions react-server \"lib/**/*.test.ts\"",
     "tokens": "tsx scripts/generate-tokens.ts",
     "check:slop": "tsx scripts/check-slop.ts",
     "db:generate": "drizzle-kit generate",
@@ -21,6 +21,7 @@
     "db:seed": "tsx db/seed.ts"
   },
   "dependencies": {
+    "@shikijs/rehype": "4.4.1",
     "better-auth": "1.6.25",
     "drizzle-orm": "0.45.2",
     "next": "15.5.22",
@@ -28,8 +29,14 @@
     "postgres": "3.4.9",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "rehype-sanitize": "6.0.0",
+    "rehype-stringify": "10.0.1",
+    "remark-gfm": "4.0.1",
+    "remark-parse": "11.0.0",
+    "remark-rehype": "11.1.2",
     "server-only": "0.0.1",
     "shiki": "4.3.1",
+    "unified": "11.0.5",
     "zod": "4.4.3"
   },
   "devDependencies": {

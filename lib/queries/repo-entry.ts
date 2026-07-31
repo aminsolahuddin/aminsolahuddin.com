@@ -39,6 +39,8 @@ export interface RepoSummary {
   licenseSpdx: string | null;
   lastCommitAt: Date | null;
   syncedAt: Date | null;
+  /** When it first went public. What §11's feed dates an entry by. */
+  publishedAt: Date | null;
   categoryKey: string | null;
   oneLiner: string;
   translated: boolean;
@@ -52,7 +54,6 @@ export interface RepoDetail extends RepoSummary {
   replaces: string | null;
   theCatch: string | null;
   reviewedAt: Date | null;
-  publishedAt: Date | null;
 }
 
 function pick<T extends { locale: string }>(
@@ -96,6 +97,7 @@ export async function listRepos(
       licenseSpdx: repoEntry.licenseSpdx,
       lastCommitAt: repoEntry.lastCommitAt,
       syncedAt: repoEntry.syncedAt,
+      publishedAt: repoEntry.publishedAt,
       categoryKey: category.key,
     })
     .from(repoEntry)
@@ -165,6 +167,7 @@ export async function listRepos(
         licenseSpdx: row.licenseSpdx,
         lastCommitAt: row.lastCommitAt,
         syncedAt: row.syncedAt,
+        publishedAt: row.publishedAt,
         categoryKey: row.categoryKey,
         oneLiner: chosen.row.oneLiner,
         translated: chosen.translated,
@@ -317,12 +320,24 @@ export async function listRepoCategories(
   });
 }
 
-/** Every published owner/name pair, for the sitemap. */
+/**
+ * Every published owner/name pair with its last edit, for the sitemap.
+ *
+ * `updated_at` and not `synced_at`. §9 asks for lastmod from updated_at, and the
+ * distinction matters here more than anywhere else on the site: the sync job
+ * deliberately leaves updated_at alone, so a weekly star-count refresh does not
+ * tell every crawler that all ten pages changed on Sunday. What changed was a
+ * number nobody came back for.
+ */
 export async function getPublishedRepoPaths(): Promise<
-  { owner: string; name: string }[]
+  { owner: string; name: string; updatedAt: Date }[]
 > {
   return getDb()
-    .select({ owner: repoEntry.owner, name: repoEntry.name })
+    .select({
+      owner: repoEntry.owner,
+      name: repoEntry.name,
+      updatedAt: repoEntry.updatedAt,
+    })
     .from(repoEntry)
     .where(eq(repoEntry.contentStatus, "published"))
     .orderBy(desc(repoEntry.publishedAt));

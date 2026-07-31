@@ -14,6 +14,8 @@ import {
   DisclosureBanner,
   shouldDisclose,
 } from "@/components/disclosure-banner";
+import { Prose } from "@/components/prose";
+import { localeAlternates } from "@/lib/alternates";
 
 /**
  * The page every short link lands on. BUILD_PLAN.md §12 makes "no dead ends" part
@@ -37,15 +39,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   return {
     title: pack.title,
     description: pack.summary ?? undefined,
-    alternates: {
-      canonical: `/${locale}/resources/${slug}`,
-      languages: {
-        ...Object.fromEntries(
-          routing.locales.map((l) => [l, `/${l}/resources/${slug}`]),
-        ),
-        "x-default": `/${routing.defaultLocale}/resources/${slug}`,
-      },
-    },
+    alternates: localeAlternates(locale, `/resources/${slug}`),
   };
 }
 
@@ -204,18 +198,12 @@ export default async function PackPage(props: Props) {
 
         {pack.notesMd ? (
           <Section heading={t("notesHeading")}>
-            {/* Plain paragraphs, not Markdown. BUILD_PLAN.md §12 puts Markdown
-                rendering in Phase 3, and half-rendering it here — bold working,
-                links not — would read as a bug rather than as a limitation. */}
-            {pack.notesMd
-              .split(/\n{2,}/)
-              .map((para) => para.trim())
-              .filter(Boolean)
-              .map((para, i) => (
-                <p key={i} className="text-body mt-md first:mt-0">
-                  {para}
-                </p>
-              ))}
+            {/* Real Markdown now. Phase 1 rendered these as plain paragraphs and
+                said why: half-rendering it, with bold working and links not,
+                reads as a bug rather than as a limitation. Phase 3 brought the
+                renderer, so the notes get it too — the column was always
+                notes_md, and until now the "md" was a promise. */}
+            <Prose source={pack.notesMd} />
           </Section>
         ) : null}
       </article>

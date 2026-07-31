@@ -85,6 +85,18 @@
     },
     "replacedBy": "Use this instead"
   },
+  "writing": {
+    "indexTitle": "Writing",
+    "indexLead": "Longer notes that did not fit in a video.",
+    "empty": "Nothing published yet.",
+    "published": "Published {date}",
+    "updated": "Updated {date}",
+    "readMore": "Read"
+  },
+  "feed": {
+    "title": "Amin Solahuddin",
+    "description": "Posts and new repo entries, in {language}."
+  },
   "disclosure": {
     "affiliate": "This page contains affiliate links. I only link tools I have used, and it costs you nothing extra.",
     "readPolicy": "Read the full policy"

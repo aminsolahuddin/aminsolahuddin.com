@@ -8,6 +8,7 @@ import { routing } from "@/i18n/routing";
 import { listRepoCategories, listRepos } from "@/lib/queries/repo-entry";
 import { RepoStatusBadge, StarCount } from "@/components/repo-status";
 import { FallbackNotice } from "@/components/fallback-notice";
+import { localeAlternates } from "@/lib/alternates";
 import {
   FilterEmpty,
   FilterForm,
@@ -45,13 +46,7 @@ export async function generateMetadata(props: {
   return {
     title: t("indexTitle"),
     description: t("indexLead"),
-    alternates: {
-      canonical: `/${locale}/repos`,
-      languages: {
-        ...Object.fromEntries(routing.locales.map((l) => [l, `/${l}/repos`])),
-        "x-default": `/${routing.defaultLocale}/repos`,
-      },
-    },
+    alternates: localeAlternates(locale, "/repos"),
   };
 }
 

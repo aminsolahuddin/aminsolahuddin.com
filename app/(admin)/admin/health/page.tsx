@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/require-admin";
 import {
   countStaleReviews,
+  getSyncFreshness,
   listOpenSyncChanges,
   listSuspectLinks,
 } from "@/lib/queries/health";
@@ -21,10 +22,11 @@ export const dynamic = "force-dynamic";
 export default async function HealthPage() {
   await requireAdmin();
 
-  const [changes, links, stale] = await Promise.all([
+  const [changes, links, stale, sync] = await Promise.all([
     listOpenSyncChanges(),
     listSuspectLinks(),
     countStaleReviews(),
+    getSyncFreshness(),
   ]);
 
   const dateFormat = new Intl.DateTimeFormat("en", { dateStyle: "medium" });
@@ -42,11 +44,39 @@ export default async function HealthPage() {
         marked, and pointed somewhere.
       </p>
 
+      {/* Above everything else on purpose. If the sync has stopped running, the
+          three sections below are reporting on data that stopped moving, and
+          "nothing new since you last looked" would be a lie told confidently. */}
+      {sync.stale ? (
+        <aside
+          role="status"
+          className="border-hairline bg-surface-pearl rounded-sm mt-xl border p-md"
+        >
+          <p className="text-body-strong">The sync has stopped running.</p>
+          <p className="text-body text-ink-muted-80 mt-xxs text-pretty">
+            {sync.lastSyncedAt
+              ? `Last successful run was ${dateFormat.format(sync.lastSyncedAt)}. Everything below is reporting on data from then.`
+              : "It has never completed a run. Star counts and statuses on the public pages have never been checked."}
+          </p>
+          <p className="text-caption text-ink-muted-80 mt-xs text-pretty">
+            The usual cause is GITHUB_SYNC_TOKEN expiring — fine-grained tokens
+            always do. Generate a new one, set it in Vercel, and redeploy. The
+            failures themselves are in the Vercel cron log for{" "}
+            <span className="font-mono">/api/cron/github-sync</span>.
+          </p>
+        </aside>
+      ) : null}
+
       <section className="mt-xxl">
         <h2 className="text-tagline font-display">Changed on GitHub</h2>
         <p className="text-caption text-ink-muted-80 mt-xxs">
           The facts are already updated. What the page <em>says</em> about them is
           yours to decide.
+          {/* Stated even when healthy. "Nothing new" only means something once
+              you can see the job that would have found something is alive. */}
+          {sync.lastSyncedAt && !sync.stale ? (
+            <> Last checked {dateFormat.format(sync.lastSyncedAt)}.</>
+          ) : null}
         </p>
 
         {changes.length === 0 ? (
