@@ -61,6 +61,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
 
   /**
+   * Listed, but low priority. §10's disclosure and privacy pages exist to be
+   * found by a reader who is already here and wants to check something, not to
+   * compete for search traffic — and /about is a bio, not an answer to a query.
+   */
+  const infoPages = ["/about", "/disclosure", "/privacy"].flatMap((path) =>
+    localised(path, now, 0.3),
+  );
+
+  /**
    * Content pages carry their own updated_at rather than today's date.
    *
    * A sitemap that stamps everything with "now" on every crawl is telling a
@@ -79,5 +88,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     localised(`/writing/${post.slug}`, post.updatedAt, 0.7),
   );
 
-  return [...staticPages, ...packPages, ...repoPages, ...postPages];
+  return [...staticPages, ...packPages, ...repoPages, ...postPages, ...infoPages];
 }
