@@ -135,11 +135,14 @@ export async function listSuspectLinks(): Promise<SuspectLinkRow[]> {
           ),
         ),
     ),
-    // Tools have no admin page until Phase 4. The row still appears, with the
-    // name and no link, because a broken affiliate URL is worth knowing about
-    // before there is a screen to fix it on.
     lookup(byType("tool"), () =>
-      db.select({ id: tool.id, label: tool.name, href: sql<string>`null` }).from(tool),
+      db
+        .select({
+          id: tool.id,
+          label: tool.name,
+          href: sql<string>`'/admin/tools/' || ${tool.id}`,
+        })
+        .from(tool),
     ),
   ]);
 

@@ -56,8 +56,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const now = new Date();
 
-  const staticPages = ["", "/resources", "/repos", "/writing"].flatMap((path) =>
-    localised(path, now, path === "" ? 1 : 0.8),
+  const staticPages = ["", "/resources", "/repos", "/writing", "/tools"].flatMap(
+    (path) => localised(path, now, path === "" ? 1 : 0.8),
   );
 
   /**

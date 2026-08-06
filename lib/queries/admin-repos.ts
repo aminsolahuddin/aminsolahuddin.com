@@ -1,9 +1,8 @@
 import "server-only";
-import { and, asc, desc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 
 import { getDb } from "@/db";
 import {
-  category,
   categoryI18n,
   linkHealth,
   repoEntry,
@@ -256,22 +255,4 @@ export async function repoTaken(
     .limit(1);
 
   return rows.length > 0;
-}
-
-/** Categories for the editor's select. Machine key plus its English name. */
-export async function listRepoCategoryOptions(): Promise<
-  { id: string; key: string; name: string }[]
-> {
-  const rows = await getDb()
-    .select({
-      id: category.id,
-      key: category.key,
-      name: categoryI18n.name,
-    })
-    .from(category)
-    .innerJoin(categoryI18n, eq(categoryI18n.categoryId, category.id))
-    .where(eq(categoryI18n.locale, DEFAULT_LOCALE))
-    .orderBy(asc(category.sortOrder));
-
-  return rows;
 }

@@ -15,8 +15,8 @@ export default async function AdminDashboard() {
   const upcoming = [
     { phase: "Phase 1", item: "Media pipeline (R2 upload, WebP/AVIF, alt text)" },
     { phase: "Phase 3", item: "Newsletter — waiting on the custom domain" },
-    { phase: "Phase 4", item: "Tools and the disclosure page" },
     { phase: "Phase 5", item: "Translation gaps for ms and zh-Hans" },
+    { phase: "Phase 5", item: "Backups: nightly dump, export button, weekly commit" },
   ] as const;
 
   return (
@@ -51,6 +51,14 @@ export default async function AdminDashboard() {
               className="text-body text-primary underline-offset-4 hover:underline"
             >
               Writing
+            </Link>
+          </li>
+          <li className="py-sm">
+            <Link
+              href="/admin/tools"
+              className="text-body text-primary underline-offset-4 hover:underline"
+            >
+              Tools
             </Link>
           </li>
           <li className="py-sm">

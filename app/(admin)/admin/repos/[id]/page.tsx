@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { requireAdmin } from "@/lib/require-admin";
-import { getAdminRepo, listRepoCategoryOptions } from "@/lib/queries/admin-repos";
+import { getAdminRepo } from "@/lib/queries/admin-repos";
+import { listCategoryOptions } from "@/lib/queries/admin-categories";
 import { RepoForm } from "../repo-form";
 import { DeleteRepoButton } from "../delete-button";
 
@@ -19,7 +20,7 @@ export default async function EditRepoPage(props: {
 
   const [entry, categories] = await Promise.all([
     getAdminRepo(id),
-    listRepoCategoryOptions(),
+    listCategoryOptions(),
   ]);
 
   if (!entry) notFound();

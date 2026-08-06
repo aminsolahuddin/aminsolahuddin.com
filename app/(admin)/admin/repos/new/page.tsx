@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { requireAdmin } from "@/lib/require-admin";
-import { listRepoCategoryOptions } from "@/lib/queries/admin-repos";
+import { listCategoryOptions } from "@/lib/queries/admin-categories";
 import { RepoForm } from "../repo-form";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function NewRepoPage() {
   await requireAdmin();
 
-  const categories = await listRepoCategoryOptions();
+  const categories = await listCategoryOptions();
 
   return (
     <div className="mx-auto max-w-4xl px-lg py-xxl">
