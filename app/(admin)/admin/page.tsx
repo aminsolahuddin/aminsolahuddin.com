@@ -15,8 +15,8 @@ export default async function AdminDashboard() {
   const upcoming = [
     { phase: "Phase 1", item: "Media pipeline (R2 upload, WebP/AVIF, alt text)" },
     { phase: "Phase 3", item: "Newsletter — waiting on the custom domain" },
-    { phase: "Phase 5", item: "Translation gaps for ms and zh-Hans" },
     { phase: "Phase 5", item: "Backups: nightly dump, export button, weekly commit" },
+    { phase: "Phase 5", item: "ms and zh-Hans copy itself — see Translations" },
   ] as const;
 
   return (
@@ -85,6 +85,18 @@ export default async function AdminDashboard() {
             <p className="text-caption text-ink-muted-80 mt-xxs">
               Repos that changed on GitHub, links that stopped answering, entries
               nobody has checked in six months.
+            </p>
+          </li>
+          <li className="py-sm">
+            <Link
+              href="/admin/translations"
+              className="text-body text-primary underline-offset-4 hover:underline"
+            >
+              Translations
+            </Link>
+            <p className="text-caption text-ink-muted-80 mt-xxs">
+              What is still English, per language and per content type. §4 asks
+              for this because a backlog nobody can see is one that quietly dies.
             </p>
           </li>
         </ul>
