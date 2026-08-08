@@ -52,3 +52,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Original photos and scans. `pnpm images` reads from here and writes the served
+# copies into public/images/, which is what gets committed.
+#
+# These stay out on purpose. A phone photo carries EXIF, and EXIF carries GPS —
+# a picture of a certificate taken at a desk records the coordinates of that
+# desk. BUILD_PLAN.md §6 makes stripping it a requirement of the pipeline, and a
+# commit here would put the unstripped original in a public repository forever
+# regardless of how clean the served file is.
+/assets/originals/*
+!/assets/originals/README.md
